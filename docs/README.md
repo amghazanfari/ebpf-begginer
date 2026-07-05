@@ -1,6 +1,6 @@
 # A Beginner's Guide to eBPF in Rust
 
-This tutorial is a humble, step-by-step introduction to learning eBPF using the Rust programming language. It is designed specifically for beginners who want to explore how eBPF works under the hood without getting overwhelmed.
+This tutorial is a step-by-step introduction to learning eBPF using the Rust programming language. It is designed specifically for beginners who want to explore how eBPF works under the hood without getting overwhelmed.
 
 By following this guide, you will learn the basics of eBPF and eventually combine different concepts to build a simple, educational eBPF agent.
 
