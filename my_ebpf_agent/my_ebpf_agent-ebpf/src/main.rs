@@ -2,6 +2,7 @@
 #![no_main]
 
 use aya_ebpf::{macros::kprobe, programs::ProbeContext};
+use aya_ebpf::helpers::bpf_get_current_pid_tgid;
 use aya_log_ebpf::info;
 
 #[kprobe]
@@ -13,7 +14,9 @@ pub fn my_ebpf_agent(ctx: ProbeContext) -> u32 {
 }
 
 fn try_my_ebpf_agent(ctx: ProbeContext) -> Result<u32, u32> {
-    info!(&ctx, "kprobe called");
+    let pid_tgid = bpf_get_current_pid_tgid();
+    let pid = (pid_tgid >> 32) as u32;
+    info!(&ctx, "try_to_wake_up called by PID: {}", pid);
     Ok(0)
 }
 
