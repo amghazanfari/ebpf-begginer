@@ -12,7 +12,7 @@ We will be using the [Aya](https://aya-rs.dev/) framework, which allows us to wr
 - [Chapter 4: Traffic Control (TC) and Network Manipulation](./chapter_04_traffic_control.md)
 - [Chapter 5: Advanced Observability with Tracepoints and Uprobes](./chapter_05_observability.md)
 - [Chapter 6: eBPF Maps - Storing and Sharing State](./chapter_06_ebpf_maps.md)
-- Chapter 7: Security Observability - Catching Malicious Activity
+- [Chapter 7: Security Observability - Catching Malicious Activity](./chapter_07_security_observability.md)
 - Chapter 8: Capstone Project - The Mini-Cilium Agent
 
 Let's dive in! Start by reading [Chapter 1](./chapter_01_getting_started.md).
