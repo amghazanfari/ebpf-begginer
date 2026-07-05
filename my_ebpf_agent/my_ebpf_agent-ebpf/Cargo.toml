@@ -1,0 +1,17 @@
+[package]
+name = "my_ebpf_agent-ebpf"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+my_ebpf_agent-common = { path = "../my_ebpf_agent-common" }
+
+aya-ebpf = { workspace = true }
+aya-log-ebpf = { workspace = true }
+
+[build-dependencies]
+which = { workspace = true }
+
+[[bin]]
+name = "my_ebpf_agent"
+path = "src/main.rs"
