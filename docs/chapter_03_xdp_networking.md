@@ -1,4 +1,4 @@
-# Chapter 3: High-Performance Networking with XDP
+# Chapter 3: Basic Networking with XDP
 
 ## 3.1 The eXpress Data Path (XDP)
 

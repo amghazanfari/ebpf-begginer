@@ -1,16 +1,21 @@
-# Building a Next-Generation eBPF Agent in Rust
+# A Beginner's Guide to eBPF in Rust
 
-This book provides a comprehensive, step-by-step guide to mastering eBPF using the Rust programming language. It covers the fundamentals of eBPF development, culminating in the construction of a sophisticated agent capable of high-performance networking, deep observability, and security enforcement—similar in architecture to projects like Cilium.
+This tutorial is a humble, step-by-step introduction to learning eBPF using the Rust programming language. It is designed specifically for beginners who want to explore how eBPF works under the hood without getting overwhelmed.
 
-The curriculum utilizes the [Aya](https://aya-rs.dev/) framework, which enables developers to write both eBPF programs and the userspace control plane entirely in safe Rust.
+By following this guide, you will learn the basics of eBPF and eventually combine different concepts to build a simple, educational eBPF agent.
+
+All the code and examples are available on GitHub. If you find this guide helpful, feel free to drop a star!
+⭐ **[github.com/amghazanfari/ebpf-begginer](https://github.com/amghazanfari/ebpf-begginer)**
+
+We will use the [Aya](https://aya-rs.dev/) framework, which allows us to write both eBPF programs and the userspace applications entirely in Rust.
 
 ## Table of Contents
 
 - [Chapter 1: Getting Started with eBPF and Aya](./chapter_01_getting_started.md)
-- [Chapter 2: Your First eBPF Program - Kprobes and Tracing](./chapter_02_kprobes.md)
-- [Chapter 3: High-Performance Networking with XDP (eXpress Data Path)](./chapter_03_xdp_networking.md)
-- [Chapter 4: Traffic Control (TC) and Network Manipulation](./chapter_04_traffic_control.md)
-- [Chapter 5: Advanced Observability with Tracepoints and Uprobes](./chapter_05_observability.md)
-- [Chapter 6: eBPF Maps - Storing and Sharing State](./chapter_06_ebpf_maps.md)
-- [Chapter 7: Security Observability - Catching Malicious Activity](./chapter_07_security_observability.md)
-- [Chapter 8: Capstone Project - The Mini-Cilium Agent](./chapter_08_capstone.md)
+- [Chapter 2: Kprobes and Tracing](./chapter_02_kprobes.md)
+- [Chapter 3: Basic Networking with XDP](./chapter_03_xdp_networking.md)
+- [Chapter 4: Traffic Control (TC)](./chapter_04_traffic_control.md)
+- [Chapter 5: Tracepoints and Uprobes](./chapter_05_observability.md)
+- [Chapter 6: eBPF Maps and State](./chapter_06_ebpf_maps.md)
+- [Chapter 7: Basic Security and Mitigation](./chapter_07_security_observability.md)
+- [Chapter 8: Combining Programs (A Simple Agent)](./chapter_08_capstone.md)

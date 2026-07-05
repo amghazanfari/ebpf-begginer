@@ -1,0 +1,12 @@
+[book]
+authors = ["Amir"]
+language = "en"
+multilingual = false
+src = "docs"
+title = "A Beginner's Guide to eBPF in Rust"
+
+[output.html]
+# This adds a GitHub icon in the top right corner for people to star/like the repo!
+git-repository-url = "https://github.com/amghazanfari/ebpf-begginer"
+git-repository-icon = "fa-github"
+edit-url-template = "https://github.com/amghazanfari/ebpf-begginer/edit/main/docs/{path}"

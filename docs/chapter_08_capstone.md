@@ -1,10 +1,10 @@
-# Chapter 8: Capstone Project - Unified eBPF Architecture
+# Chapter 8: Combining Programs (A Simple Agent)
 
-Production-grade observability and security suites typically employ a unified agent architecture, synthesizing multiple eBPF programs into a cohesive deployment model managed by a singular userspace application.
+This final chapter demonstrates how to combine the basic concepts learned previously. While production tools are highly complex, we can learn a lot by putting together a simple, educational agent that runs two different eBPF programs from a single userspace application.
 
 ## 8.1 Multi-Program Structuring
 
-Aya supports the compilation and execution of heterogeneous eBPF program types within a single binary payload. This capstone project integrates the network filtering mechanisms constructed in Chapter 3 with the process monitoring capabilities defined in Chapter 5.
+Aya supports compiling and loading multiple eBPF programs in a single project. Here, we will combine the simple network filter from Chapter 3 with the process monitor from Chapter 5.
 
 ## 8.2 Exercise: Unified Agent Implementation
 

@@ -1,4 +1,4 @@
-# Chapter 7: Security Observability and Active Mitigation
+# Chapter 7: Basic Security and Mitigation
 
 Modern Cloud Native Security solutions extend beyond passive observability into proactive system enforcement. eBPF provides the infrastructure necessary to intercept and terminate unauthorized kernel operations dynamically.
 
