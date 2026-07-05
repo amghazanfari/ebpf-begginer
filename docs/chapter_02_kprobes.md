@@ -1,75 +1,63 @@
-# Chapter 2: Your First eBPF Program - Kprobes and Tracing
+# Chapter 2: Kprobes and Tracing
 
-Awesome job running your first eBPF program! You just dynamically attached sandboxed code to a live running kernel.
+## 2.1 The Kprobe Hook Point
 
-Let's dive into what is actually happening.
+A **Kprobe** (Kernel Probe) is a mechanism that allows developers to dynamically intercept execution at almost any instruction within the Linux kernel. When the kernel reaches the specified function, the attached eBPF program executes, providing access to inspect function arguments, return values, or simply record the invocation event.
 
-## What is a Kprobe?
+Two primary variants exist:
+1. `kprobe`: Executes *before* the target kernel function executes.
+2. `kretprobe`: Executes *after* the target kernel function executes, facilitating inspection of its return value.
 
-A **Kprobe** (Kernel Probe) allows you to dynamically intercept almost any function within the Linux kernel. When the kernel reaches the specified function, your eBPF program runs, allowing you to inspect arguments, return values, or simply log that the function was called.
+## 2.2 Analyzing the eBPF Architecture
 
-There are two types:
-1. `kprobe`: Runs *before* the kernel function executes.
-2. `kretprobe`: Runs *after* the kernel function executes (allowing you to inspect its return value).
+An eBPF project is divided into Kernel Space and User Space components.
 
-## Exploring the Generated Code
+### 2.2.1 The Kernel Space Program
+The code located in `my_ebpf_agent-ebpf/src/main.rs` represents the logic executed within the kernel. 
 
-Your generated project has two halves: the Kernel Space (eBPF code) and User Space (the Rust program that manages the eBPF code).
-
-### 1. The Kernel Space Program
-Open `my_ebpf_agent-ebpf/src/main.rs`. This is the code running inside the kernel!
-
-Notice the `#[kprobe]` macro. This tells Aya to compile this function as a kprobe eBPF program.
-Inside `try_my_ebpf_agent`, you'll see a line like:
+The `#[kprobe]` macro instructs the compiler to format the function as a kprobe eBPF program. A typical logging implementation utilizes the `aya_log_ebpf` crate:
 ```rust
 info!(&ctx, "function try_to_wake_up called");
 ```
-Aya sets up an efficient ring buffer behind the scenes to ship these logs from the kernel up to your userspace program.
+This macro leverages a ring buffer to efficiently stream log data from the kernel to the userspace application.
 
-### 2. The User Space Program
-Open `my_ebpf_agent/src/main.rs`. This program does the heavy lifting:
-1. **Loads** the compiled eBPF bytecode (`bpf.load()`).
-2. **Attaches** the program to the kernel function (`bpf.program_mut("my_ebpf_agent").unwrap().attach(...)`).
-3. **Listens** for logs coming from the kernel (`BpfLogger::init(...)`).
+### 2.2.2 The User Space Program
+The application in `my_ebpf_agent/src/main.rs` manages the lifecycle of the eBPF program:
+1. **Loading**: Reads and loads the compiled eBPF bytecode via `bpf.load()`.
+2. **Attaching**: Binds the loaded program to the specific kernel function via `attach()`.
+3. **Listening**: Initializes the asynchronous logger to receive events from the kernel via `BpfLogger::init(...)`.
 
-## Exercise 2.1: Extracting the Process ID (PID)
+## 2.3 Exercise 2.1: Extracting System State
 
-Logging a static string is cool, but eBPF is powerful because it lets you inspect system state. Let's modify our eBPF program to log the Process ID (PID) of the application that triggered the `try_to_wake_up` function.
+eBPF's primary utility lies in system state inspection. This exercise modifies the eBPF program to extract the Process ID (PID) of the application responsible for triggering the kernel function.
 
-In eBPF, we use "Helper Functions" to ask the kernel for information safely. To get the PID, we use `bpf_get_current_pid_tgid()`. 
+eBPF programs interact with the kernel through restricted "Helper Functions." To retrieve the PID, the `bpf_get_current_pid_tgid()` helper is used.
 
-**Step 1:** Open `my_ebpf_agent-ebpf/src/main.rs`.
-**Step 2:** Import the helper function at the top of the file:
+**Step 1:** Modify `my_ebpf_agent-ebpf/src/main.rs` to import the helper function:
 ```rust
 use aya_ebpf::helpers::bpf_get_current_pid_tgid;
 ```
-**Step 3:** Inside your `try_my_ebpf_agent` function, extract the PID and log it. The `bpf_get_current_pid_tgid` function returns a 64-bit integer where the top 32 bits are the PID (Thread Group ID in kernel terms) and the bottom 32 bits are the thread ID.
-Change your logging code to look like this:
+
+**Step 2:** Extract the PID within the probe function. The helper returns a 64-bit integer where the upper 32 bits contain the Thread Group ID (which corresponds to the PID in userspace semantics).
 
 ```rust
 fn try_my_ebpf_agent(ctx: ProbeContext) -> Result<u32, u32> {
-    // Call the helper function
     let pid_tgid = bpf_get_current_pid_tgid();
-    
-    // The PID is in the upper 32 bits
     let pid = (pid_tgid >> 32) as u32;
 
-    // Log the PID dynamically!
     info!(&ctx, "try_to_wake_up called by PID: {}", pid);
     
     Ok(0)
 }
 ```
 
-## Exercise 2.2: Recompile and Run
+## 2.4 Exercise 2.2: Compilation and Execution
 
-Once you've saved the changes to the eBPF code, run your userspace program again (make sure you use `sudo` or run it as root as eBPF requires privileges):
+After saving modifications, the userspace program must be recompiled and executed with elevated privileges to attach the probe.
 
 ```bash
 cd my_ebpf_agent
 RUST_LOG=info cargo xtask run
 ```
 
-*Note: The `cargo xtask run` command is a neat Aya feature that automatically compiles your eBPF code, compiles your userspace code, and then runs the userspace code.*
-
-Try this out! You should now see a stream of logs showing exactly which Process IDs are waking up tasks on your machine. Let me know when you get this working, and we will move on to high-performance networking with XDP in Chapter 3!
+The output stream will display the active Process IDs invoking the traced kernel function.

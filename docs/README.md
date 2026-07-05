@@ -1,8 +1,8 @@
 # Building a Next-Generation eBPF Agent in Rust
 
-Welcome to your step-by-step guide to mastering eBPF using Rust! By the end of this journey, you will build a sophisticated agent capable of ultra-fast networking, deep observability, and security enforcement—similar to projects like Cilium.
+This book provides a comprehensive, step-by-step guide to mastering eBPF using the Rust programming language. It covers the fundamentals of eBPF development, culminating in the construction of a sophisticated agent capable of high-performance networking, deep observability, and security enforcement—similar in architecture to projects like Cilium.
 
-We will be using the [Aya](https://aya-rs.dev/) framework, which allows us to write both the eBPF programs and the userspace control plane entirely in Rust.
+The curriculum utilizes the [Aya](https://aya-rs.dev/) framework, which enables developers to write both eBPF programs and the userspace control plane entirely in safe Rust.
 
 ## Table of Contents
 
@@ -14,5 +14,3 @@ We will be using the [Aya](https://aya-rs.dev/) framework, which allows us to wr
 - [Chapter 6: eBPF Maps - Storing and Sharing State](./chapter_06_ebpf_maps.md)
 - [Chapter 7: Security Observability - Catching Malicious Activity](./chapter_07_security_observability.md)
 - [Chapter 8: Capstone Project - The Mini-Cilium Agent](./chapter_08_capstone.md)
-
-Let's dive in! Start by reading [Chapter 1](./chapter_01_getting_started.md).

@@ -1,39 +1,30 @@
 # Chapter 5: Advanced Observability with Tracepoints and Uprobes
 
-So far, we have manipulated the network and traced raw kernel functions using Kprobes. While Kprobes are incredibly powerful, they have a major downside: **they are unstable**. Kernel functions change names or get removed between Linux updates, which can break your eBPF Kprobes!
+While Kprobes offer significant utility for kernel tracing, their reliance on dynamic function names makes them susceptible to breakage across different Linux kernel versions. For production-grade observability and security agents, stability is paramount.
 
-To build a reliable observability or security agent (like Cilium or Tetragon), we rely on two other powerful hook points: **Tracepoints** and **Uprobes**.
+## 5.1 Tracepoints
 
-## 5.1 Tracepoints: Stable Kernel Hooks
-Tracepoints are static markers placed manually by Linux kernel developers. They are guaranteed to remain stable across kernel versions. 
+Tracepoints are static instrumentation markers embedded directly within the kernel source code by Linux developers. They are explicitly maintained as a stable API across kernel releases. For standard system events (e.g., process execution, file I/O, network connections), Tracepoints are the preferred mechanism over Kprobes.
 
-Whenever you want to observe a system event (like a process starting, a file opening, or a network socket connecting), you should always look for a Tracepoint first, and only fall back to a Kprobe if a Tracepoint doesn't exist.
+## 5.2 Uprobes
 
-## 5.2 Uprobes: Spying on User-Space
-What if you want to monitor something that never reaches the kernel? For example, what if you want to intercept the plaintext HTTP data *before* it gets encrypted by OpenSSL? 
+Uprobes (User-Space Probes) extend eBPF's tracing capabilities to userspace applications. They allow eBPF programs to attach to specific functions within running binaries or shared libraries. Common use cases include tracing bash inputs or intercepting unencrypted data structures prior to TLS encryption via `libssl.so`.
 
-**Uprobes (User-Space Probes)** allow you to attach eBPF programs to functions inside *any running application*. You can attach a Uprobe to `bash` to see exactly what commands a user is typing, or to `libssl.so` to intercept `SSL_write`.
+## 5.3 Exercise: Tracepoint Implementation
 
-## 5.3 Exercise: Building an Exec Monitor (Tracepoint)
+This exercise implements a system monitor utilizing the `sched_process_exec` tracepoint to log process executions.
 
-In this exercise, we will build a security tool that logs every time a new process is executed on the system. We will use the `sched_process_exec` tracepoint.
+### Step 1: Project Generation
 
-### Step 1: Generate the Tracepoint Project
-Go to `/home/amir/ebpf` and run:
+Generate a tracepoint project:
 
 ```bash
 cargo generate -n exec_monitor -d program_type=tracepoint https://github.com/aya-rs/aya-template
 ```
+Configure the attachment point as: `sched:sched_process_exec`.
 
-When it asks: `Where to attach the tracepoint?`
-Type: `sched:sched_process_exec`
-
-### Step 2: Write the Tracepoint Code
-Open `exec_monitor/exec_monitor-ebpf/src/main.rs`.
-
-Aya's `TracePointContext` is very simple to use. However, reading the raw string of the command that was executed requires reading kernel memory. To do this, we use the `bpf_probe_read_user_str_bytes` helper.
-
-Replace the contents of `exec_monitor-ebpf/src/main.rs` with:
+### Step 2: Implementation
+Replace the contents of `exec_monitor-ebpf/src/main.rs` with the following. The implementation leverages `bpf_get_current_pid_tgid` to identify the invoking process.
 
 ```rust
 #![no_std]
@@ -55,12 +46,8 @@ pub fn exec_monitor(ctx: TracePointContext) -> u32 {
 }
 
 fn try_exec_monitor(ctx: TracePointContext) -> Result<u32, u32> {
-    // 1. Get the PID of the process
     let pid = (bpf_get_current_pid_tgid() >> 32) as u32;
-
-    // 2. We can simply log that an execution happened for this PID
     info!(&ctx, "SECURITY ALERT: Process {} executed a new program!", pid);
-
     Ok(0)
 }
 
@@ -75,11 +62,9 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 static LICENSE: [u8; 13] = *b"Dual MIT/GPL\0";
 ```
 
-### Step 3: Run and Test
-1. Navigate to the root of the workspace: `cd /home/amir/ebpf/exec_monitor`
-2. Run it: `RUST_LOG=info cargo xtask run`
-3. Open a new terminal and type some commands like `ls`, `cat`, or `echo`.
-
-Watch your logs! Every time a new process spawns, your eBPF tracepoint will instantly catch it. This is exactly how commercial Cloud Native Security tools monitor what is happening inside Docker containers!
-
-Once you have the `exec_monitor` running and catching your `ls` commands, let me know, and we will move on to **Chapter 6: eBPF Maps**, where we will finally learn how to share complex data structures (like the actual command string `ls`) between the kernel and userspace!
+### Step 3: Execution
+Run the userspace application:
+```bash
+RUST_LOG=info cargo xtask run
+```
+Execute commands in a secondary terminal to observe the tracepoint triggering.

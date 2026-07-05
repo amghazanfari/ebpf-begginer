@@ -1,27 +1,27 @@
 # Chapter 1: Getting Started with eBPF and Aya
 
-## What is eBPF?
+## 1.1 What is eBPF?
 
-eBPF (Extended Berkeley Packet Filter) is a revolutionary technology that allows you to run sandboxed programs in an operating system kernel. It is used to safely and efficiently extend the capabilities of the kernel without requiring to change kernel source code or load kernel modules.
+eBPF (Extended Berkeley Packet Filter) is a technology that allows sandboxed programs to execute within the operating system kernel. It is utilized to safely and efficiently extend the capabilities of the kernel without requiring modifications to kernel source code or the loading of kernel modules.
 
-eBPF programs are event-driven and run when the kernel or an application passes a certain hook point. Examples of hook points include system calls, function entry/exit, kernel tracepoints, and network events.
+eBPF programs are event-driven and execute when the kernel or an application passes a specific hook point. Examples of hook points include system calls, function entry and exit points, kernel tracepoints, and network events.
 
-## Why Rust and Aya?
+## 1.2 The Role of Rust and Aya
 
-Traditionally, eBPF programs are written in C and compiled using Clang/LLVM. The userspace programs that load and interact with them are written in C, Go, or Python.
+Traditionally, eBPF programs are authored in C and compiled using the Clang/LLVM toolchain. The userspace programs responsible for loading and interacting with them are typically written in C, Go, or Python.
 
-[Aya](https://aya-rs.dev/) is an eBPF library built with a focus on developer experience and operability. It allows us to write both our eBPF programs AND our userspace programs entirely in Rust! This gives us memory safety, a fantastic package manager (Cargo), and an excellent developer experience.
+[Aya](https://aya-rs.dev/) is an eBPF library engineered with a focus on developer experience and operability. It facilitates the development of both eBPF programs and userspace applications entirely in Rust. This approach provides memory safety, access to the Cargo package manager, and a unified development ecosystem.
 
-## Setting up your environment
+## 1.3 Environment Setup
 
-To write eBPF programs in Rust, you'll need the Rust toolchain, a linker (`bpf-linker`), and the Aya generator (`cargo-generate`).
+To develop eBPF programs in Rust, the environment must be configured with the Rust toolchain, a linker (`bpf-linker`), and the Aya project generator (`cargo-generate`).
 
-**Exercise 1.1: Install Dependencies**
+**Exercise 1.1: Dependency Installation**
 
-Open your terminal and run the following commands to install everything you need:
+Execute the following commands to install the required dependencies:
 
 ```bash
-# 1. Install the nightly Rust toolchain (required for eBPF)
+# 1. Install the nightly Rust toolchain (required for compiling eBPF)
 rustup toolchain install nightly --component rust-src
 
 # 2. Install bpf-linker
@@ -31,20 +31,20 @@ cargo install bpf-linker
 cargo install cargo-generate
 ```
 
-## Creating Your First Project
+## 1.4 Project Initialization
 
-Once the dependencies are installed, we can generate our project structure.
+Once the environment is prepared, the project structure can be generated using Aya templates.
 
-**Exercise 1.2: Generate the Aya Project**
+**Exercise 1.2: Generating the Aya Project**
 
-Run the following command inside your workspace:
+Execute the following command within the workspace directory:
 
 ```bash
 cargo generate -n my_ebpf_agent -d program_type=kprobe https://github.com/aya-rs/aya-template
 ```
 
-This will create a new directory called `my_ebpf_agent` with two sub-projects:
-1. `my_ebpf_agent`: The userspace program (loads the eBPF code into the kernel).
-2. `my_ebpf_agent-ebpf`: The actual eBPF code that runs in the kernel.
+This command generates a new directory named `my_ebpf_agent` containing two sub-projects:
+1. `my_ebpf_agent`: The userspace program responsible for loading the eBPF code into the kernel.
+2. `my_ebpf_agent-ebpf`: The eBPF code intended to run within the kernel space.
 
-Explore the generated files. Once you have successfully generated the template, we'll move on to Chapter 2, where we will write our first `kprobe` program to intercept kernel functions!
+Review the generated file structure to understand the separation between userspace and kernel space components.

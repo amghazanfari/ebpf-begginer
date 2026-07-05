@@ -1,36 +1,24 @@
-# Chapter 8: Capstone Project - The Mini-Cilium Agent
+# Chapter 8: Capstone Project - Unified eBPF Architecture
 
-Congratulations! You have learned the three fundamental pillars of eBPF:
-1. **High-Performance Networking** (XDP & TC)
-2. **System Observability** (Tracepoints & Kprobes)
-3. **State Management & Active Security** (Maps & Signal Injection)
+Production-grade observability and security suites typically employ a unified agent architecture, synthesizing multiple eBPF programs into a cohesive deployment model managed by a singular userspace application.
 
-Real-world Cloud Native tools like **Cilium** and **Tetragon** don't just use one of these features—they combine them all into a massive, unified agent. In this final Capstone project, you will architect a unified "Mini-Cilium" agent that runs multiple different eBPF programs simultaneously from a single Userspace control plane!
+## 8.1 Multi-Program Structuring
 
-## 8.1 The Unified Agent Architecture
+Aya supports the compilation and execution of heterogeneous eBPF program types within a single binary payload. This capstone project integrates the network filtering mechanisms constructed in Chapter 3 with the process monitoring capabilities defined in Chapter 5.
 
-Up until now, you generated a separate project for each program type. But Aya allows you to compile multiple eBPF programs into a single binary and load them all together!
+## 8.2 Exercise: Unified Agent Implementation
 
-In this capstone, we will combine our XDP Firewall (from Chapter 3) and our Process Exec Monitor (from Chapter 5) into a single agent.
-
-## 8.2 Exercise: Building Mini-Cilium
-
-### Step 1: Generate the Project
-Navigate to `/home/amir/ebpf` and generate a base XDP project:
+### Step 1: Base Project Configuration
+Initialize the workspace and provision the necessary dependencies:
 
 ```bash
 cargo generate -n mini_cilium -d program_type=xdp https://github.com/aya-rs/aya-template
-```
-Then, add the networking dependencies:
-```bash
 cd mini_cilium/mini_cilium-ebpf
 cargo add network-types
 ```
 
-### Step 2: The Unified eBPF Code
-Open `mini_cilium-ebpf/src/main.rs`. Notice how we can simply declare two different macros (`#[xdp]` and `#[tracepoint]`) in the exact same file! 
-
-Replace the contents with:
+### Step 2: Multi-Program eBPF Integration
+Modify `mini_cilium-ebpf/src/main.rs` to encapsulate both the `#[xdp]` macro and the `#[tracepoint]` macro within the same module.
 
 ```rust
 #![no_std]
@@ -78,7 +66,7 @@ fn try_firewall(ctx: XdpContext) -> Result<u32, ()> {
 
     let action = match proto {
         IpProto::Icmp => {
-            info!(&ctx, "🛡️ FIREWALL: Dropped ICMP (Ping) packet!");
+            info!(&ctx, "FIREWALL: Dropped ICMP packet.");
             return Ok(xdp_action::XDP_DROP);
         }
         _ => return Ok(xdp_action::XDP_PASS),
@@ -89,7 +77,7 @@ fn try_firewall(ctx: XdpContext) -> Result<u32, ()> {
 #[tracepoint]
 pub fn exec_monitor(ctx: TracePointContext) -> u32 {
     let pid = (bpf_get_current_pid_tgid() >> 32) as u32;
-    info!(&ctx, "👁️ MONITOR: Process {} just executed a command!", pid);
+    info!(&ctx, "MONITOR: Process {} executed a command.", pid);
     0
 }
 
@@ -104,13 +92,10 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 static LICENSE: [u8; 13] = *b"Dual MIT/GPL\0";
 ```
 
-### Step 3: The Unified Userspace Code
-Now open `mini_cilium/src/main.rs` (the userspace code). We need to modify it so it loads *both* programs into the kernel!
-
-Find the `bpf.load()` code, and modify it to look exactly like this:
+### Step 3: Userspace Orchestration
+Modify `mini_cilium/src/main.rs` to sequentially instantiate and attach both eBPF programs via the `aya` API framework.
 
 ```rust
-    // Load the eBPF bytecode
     let mut ebpf = aya::Ebpf::load(aya::include_bytes_aligned!(concat!(
         env!("OUT_DIR"),
         "/mini_cilium"
@@ -132,38 +117,22 @@ Find the `bpf.load()` code, and modify it to look exactly like this:
         }
     }
 
-    // 1. Attach the XDP Firewall
-    let program: &mut Xdp = ebpf.program_mut("firewall").unwrap().try_into()?;
+    // Attach XDP Program
+    let program: &mut aya::programs::Xdp = ebpf.program_mut("firewall").unwrap().try_into()?;
     program.load()?;
     program.attach(&opt.iface, aya::programs::XdpMode::default())
-        .context("failed to attach the XDP program with default mode")?;
+        .context("failed to attach the XDP program")?;
     log::info!("Attached XDP Firewall to interface: {}", opt.iface);
 
-    // 2. Attach the Tracepoint Monitor
+    // Attach Tracepoint Program
     let program: &mut aya::programs::TracePoint = ebpf.program_mut("exec_monitor").unwrap().try_into()?;
     program.load()?;
     program.attach("sched", "sched_process_exec")?;
     log::info!("Attached Tracepoint Exec Monitor");
 
-    println!("Mini-Cilium is fully operational. Waiting for Ctrl-C...");
+    println!("Unified agent is operational. Waiting for SIGINT...");
     signal::ctrl_c().await?;
     println!("Exiting...");
 ```
 
-### Step 4: Run Your Unified Agent!
-
-1. From the `mini_cilium` directory, run your agent (don't forget to attach it to the loopback interface if you want to test pings locally!):
-   ```bash
-   RUST_LOG=info cargo xtask run -- --iface lo
-   ```
-2. Open a separate terminal.
-3. Run `ls` to trigger the Exec Monitor!
-4. Run `ping 127.0.0.1` to trigger the Firewall!
-
-You will see logs streaming from both programs simultaneously within the same rust application!
-
-## Conclusion
-
-You have successfully completed this eBPF bootcamp! You now understand the core mechanics used to build industry-leading tools like **Cilium**, **Tetragon**, **Falco**, and **Pixie**. 
-
-With Rust and Aya, the kernel is no longer a black box—it is a programmable playground. Happy hacking!
+Compile and execute the program to observe simultaneous enforcement of networking restrictions and telemetry collection.
