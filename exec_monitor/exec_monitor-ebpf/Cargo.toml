@@ -1,0 +1,17 @@
+[package]
+name = "exec_monitor-ebpf"
+version = "0.1.0"
+edition.workspace = true
+
+[dependencies]
+exec_monitor-common = { path = "../exec_monitor-common" }
+
+aya-ebpf = { workspace = true }
+aya-log-ebpf = { workspace = true }
+
+[build-dependencies]
+which = { workspace = true }
+
+[[bin]]
+name = "exec_monitor"
+path = "src/main.rs"
